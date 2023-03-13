@@ -5,7 +5,7 @@ const moduleStatusSchema = mongoose.Schema({
     moduleStatusId: { type: ObjectId, default: new ObjectId(), unique: true, index: true },
     moduleId: { type: mongoose.Types.ObjectId, required: true },
     userId: { type: mongoose.Types.ObjectId, required: true },
-    chapterStatus: [{ chaptername:String, status:String }],
+    chapterStatus: [{ chapterId:String, status:String }],
     enrollmentDate: { type: Date, required: true },
     completionDate: { type: Date},
     isCompleted:{type: Boolean,default: false},
