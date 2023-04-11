@@ -9,6 +9,8 @@ const courseSchema = mongoose.Schema({
     language: { type: String },
     timeRequired: { type: String },
     tags: [{ type: String }],
+    rating: {type:Number},
+    image:{type:String},
     instructorId: { type: mongoose.Types.ObjectId, ref: 'Instructor' },
     courseModules: [{ type: mongoose.Types.ObjectId, ref: 'CourseModule' }],
     courseAssessmentIds: [{ type: mongoose.Types.ObjectId, ref: 'CourseAssessment' }],

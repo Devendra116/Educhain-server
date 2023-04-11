@@ -12,11 +12,12 @@ app.use(express.urlencoded({ extended: false }));
 
 app.use('/user', require('./routes/user'))
 app.use('/course', require('./routes/course'))
+app.use('/ngo', require('./routes/ngo'))
 
 
 app.listen(process.env.PORT, () =>
     connectDB()
-        .then(() => console.log('Server is up and running'))
+        .then(() => console.log(`Server is up and running at http://localhost:${process.env.PORT}`))
         .catch(() =>
             console.log('Server is running , but database connection failed')
         )

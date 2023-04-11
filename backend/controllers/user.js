@@ -1,4 +1,3 @@
-const asyncHandler = require('express-async-handler')
 const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
 const User = require('../models/user')
@@ -6,7 +5,7 @@ const Course = require('../models/course')
 const cookieParser = require('cookie-parser')
 const ObjectId = require('mongoose').Types.ObjectId;
 
-
+ 
 // @desc    Authenticate a user
 // @route   POST /user
 // @access  Public
@@ -56,14 +55,14 @@ const registerUser = async (req, res) => {
         if (user__) return res.status(400).send({ message: 'Email already exists' });
 
         // Check if the nearWallet already exists
-        let user_ = await User.findOne({ nearWallet: req.body.nearWallet });
-        if (user_) return res.status(400).send({ message: 'nearWallet already exists' });
+        // let user_ = await User.findOne({ nearWallet: req.body.nearWallet });
+        // if (user_) return res.status(400).send({ message: 'nearWallet already exists' });
 
         // Create the user
         const user = new User({
             userId: new ObjectId(),
             emailId: req.body.emailId,
-            nearWallet: req.body.nearWallet,
+            // nearWallet: req.body.nearWallet,
         });
 
         // Hash the password

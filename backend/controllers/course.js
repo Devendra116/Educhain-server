@@ -28,7 +28,6 @@ const getCourses = async (req, res) => {
     } catch (error) {
         res.status(400).send({ message: `Error getting courses ${error}` });
     }
-
 }
 
 
@@ -90,11 +89,13 @@ const createCourse = async (req, res) => {
             courseId: new ObjectId(),
             courseTitle: req.body.courseTitle,
             courseBrief: req.body.courseBrief,
-            // courseFee: req.body.courseFee,
-            // language: req.body.language,
-            // timeRequired: req.body.timeRequired,
+            courseFee: req.body.courseFee,
+            language: req.body.language,
+            image: req.body.image,
+            rating: req.body.rating,
+            timeRequired: req.body.timeRequired,
             tags: req.body.tags,
-            // instructorId: req.body.instructorId,
+            instructorId: req.body.instructorId,
             courseModules: moduleIdList,
             // courseAssessmentIds: req.body.courseAssessmentIds
         });
@@ -142,7 +143,6 @@ const courseApproval = async (req, res) => {
     if (function_args.gift_to) user_account = function_args.gift_to
 
     console.log("function_args", function_args)
-    // let user_id=
     try {
         const current_time = new Date();
         const user = await User.findOne({ nearWallet: user_account })
@@ -152,53 +152,60 @@ const courseApproval = async (req, res) => {
 
             const course_enrolled = await CourseStatus.findOne({ courseId: new ObjectId(course), userId: user._id }).populate("courseModulesStatus")
             console.log("course_enrolled", course_enrolled)
+            console.log("in course_status")
+            let module_list = []
+            for (let i = 0; i < function_args.courses[course].length; i++) {
+                const module_id = function_args.courses[course][i]
+                console.log("before module_info", typeof module_id);
+                //below line stops execution ehen chapterIds is empty 
+                const module_info = await CourseModule.findOne({ moduleId: new ObjectId(module_id) })
+                console.log("module_info", module_info);
+
+                let chapter_list = []
+                module_info.chapterIds.forEach(chapter => {
+                    chapter_list.push({ chapterId: chapter, status: false })
+                })
+                console.log("chapter_list", chapter_list);
+                module_list.push({
+                    moduleStatusId: new ObjectId(),
+                    moduleId: module_id,
+                    userId: user._id,
+                    chapterStatus: chapter_list,
+                    enrollmentDate: current_time,
+                    assessmentScore: 0,
+
+                });
+                // console.log("moduleStatusId", new ObjectId());
+                // console.log("moduleId", module_id);
+                // console.log("userId", user._id);
+                // console.log("current_time", current_time);
+            }
+            console.log("module_list", module_list);
+
+            const module_status_response = await ModuleStatus.create(module_list)
+            console.log("module_status_response", module_status_response);
+            let module_status_list = []
+            module_status_response.forEach(module_status => {
+                module_status_list.push(module_status._id)
+            })
+            console.log("module_status_list", module_status_list);
+            console.log("course", course);
+            console.log("user._id", user._id);
             if (course_enrolled) {
 
-            // const course_enrolled = await CourseStatus.findOne({ courseId: new ObjectId(course), userId: user._id }).populate("courseModulesStatus")
-            // const enrolled_module_list=course_enrolled.courseModulesStatus.map(module_status=>module_status.moduleId)
-            // console.log("module_list",enrolled_module_list)
-                //update the status of course already enrolled
-                const course_status = await CourseStatus.updateOne({ courseId: course, userId: user._id }, {})
+                const course_status = await CourseStatus.updateOne({ courseId: course, userId: user._id }, { $push: { courseModulesStatus: { $each: module_status_list } } },
+                    { new: true },
+                    (err, updatedCourseStatus) => {
+                        if (err) {
+                            console.log('Error updating CourseStatus:', err);
+                        } else {
+                            console.log('Updated CourseStatus:', updatedCourseStatus);
+                        }
+                    }
+                );
+
             } else {
-                console.log("in course_status")
-                let module_list = []
-                for (let i = 0; i < function_args.courses[course].length; i++) {
-                    const module_id = function_args.courses[course][i]
-                    console.log("before module_info", typeof module_id);
-                    //below line stops execution ehen chapterIds is empty 
-                    const module_info = await CourseModule.findOne({ moduleId: new ObjectId(module_id) })
-                    console.log("module_info", module_info);
 
-                    let chapter_list = []
-                    module_info.chapterIds.forEach(chapter => {
-                        chapter_list.push({ chapterId: chapter, status: false })
-                    })
-                    console.log("chapter_list", chapter_list);
-                    module_list.push({
-                        moduleStatusId: new ObjectId(),
-                        moduleId: module_id,
-                        userId: user._id,
-                        chapterStatus: chapter_list,
-                        enrollmentDate: current_time,
-                        assessmentScore: 0,
-
-                    });
-                    // console.log("moduleStatusId", new ObjectId());
-                    // console.log("moduleId", module_id);
-                    // console.log("userId", user._id);
-                    // console.log("current_time", current_time);
-                }
-                console.log("module_list", module_list);
-
-                const module_status_response = await ModuleStatus.create(module_list)
-                console.log("module_status_response", module_status_response);
-                let module_status_list = []
-                module_status_response.forEach(module_status => {
-                    module_status_list.push(module_status._id)
-                })
-                console.log("module_status_list", module_status_list);
-                console.log("course", course);
-                console.log("user._id", user._id);
 
                 const course_status = await CourseStatus.create({
                     courseStatusId: new ObjectId(),
@@ -214,7 +221,7 @@ const courseApproval = async (req, res) => {
         }
         res.status(200).json({ "mesage": "CourseStatus created" })
     } catch (error) {
-
+        // handle error
     }
 
 }
